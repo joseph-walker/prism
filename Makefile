@@ -22,6 +22,13 @@ clean-rs:
 	rm -rf target
 .PHONY: clean-rs
 
+# Command for spawning a dev prism server and
+# booting the UI dev server
+dev-client: client/node_modules/.npm-install.sentinel
+	node echo.js | cargo run &
+	cd client && npm run dev -- --open
+.PHONY: dev-client
+
 # Install Node Modules when package.json changes
 client/node_modules/.npm-install.sentinel: client/package.json
 	cd client && npm install
