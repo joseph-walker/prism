@@ -8,11 +8,13 @@ cd prism
 make
 ```
 
-## Depending on if you want to work on the client or the server, you can run a dev build two different ways:
+## Development
+
+Depending on if you want to work on the client or the server, you can run a dev build two different ways:
 
 ### I want to work on the server
 
-```
+```sh
 # Kill and restart when you change code
 node simulate-logs | cargo run
 ```
