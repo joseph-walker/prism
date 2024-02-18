@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { createLogEmitter, transformPipeline } from "./lib/logEmitter";
+    import { filterEmpty } from "./transformers/filterEmpty";
 
   let [kill, logEmitter] = createLogEmitter();
 
@@ -36,56 +38,6 @@
     }
   }
 
-  function createLogEmitter() {
-    let killSignal = false;
-
-    function kill() {
-      killSignal = true;
-    }
-
-    async function* logEmitter(): AsyncGenerator<string> {
-      let deferred: (event: MessageEvent) => void;
-
-      const socket = new WebSocket(`ws://${window.location.hostname}:3000/ws`);
-      const listener = function (event: MessageEvent) {
-        deferred(event);
-      };
-
-      socket.addEventListener("message", listener);
-
-      while (!killSignal) {
-        const event = await new Promise<MessageEvent>(function (resolve) {
-          deferred = (event: MessageEvent) => resolve(event);
-        });
-
-        yield* event.data.split("\n");
-      }
-
-      socket.removeEventListener("message", listener);
-      socket.close();
-    }
-
-    return [kill, logEmitter] as const;
-  }
-
-  function transformPipeline(
-    transformers: ((prev: AsyncGenerator<string>) => AsyncGenerator<string>)[]
-  ): AsyncGenerator<string> {
-    if (!transformers.length) {
-      throw new Error("Transform list must contain at least 1 element");
-    }
-
-    let intermediate = transformers[0](
-      undefined as unknown as AsyncGenerator<string>
-    );
-
-    for (const t of transformers.slice(1)) {
-      intermediate = t(intermediate);
-    }
-
-    return intermediate;
-  }
-
   let logLines: string[] = [];
 
   // Because the logEmitter is an infinite loop,
@@ -93,20 +45,55 @@
   // the initial loop when this component unmounts
   onMount(() => kill);
   onMount(async function () {
-    const pipeline = [
-      logEmitter,
-      filterOdd,
-      toUpperCase,
-      groupByTwo,
-    ];
+    const pipeline: any[] = [filterEmpty];
 
-    for await (const line of transformPipeline(pipeline)) {
+    for await (const line of transformPipeline(logEmitter, pipeline)) {
       logLines.unshift(line);
       logLines = logLines;
     }
   });
 </script>
 
-{#each logLines as line}
-  <pre>{line}</pre>
-{/each}
+<nav id="navigation" />
+<aside id="tab-select" />
+<section id="logs">
+  <ul>
+    {#each logLines as line}
+      <li>{line}</li>
+    {/each}
+  </ul>
+</section>
+
+<style>
+  :global(body) {
+    background: var(--eggshell);
+    margin: var(--grid-2x);
+    display: grid;
+    grid-template-areas:
+      "a a"
+      "b c";
+  }
+
+  ul {
+    list-style: none;
+  }
+
+  #navigation {
+    grid-area: a;
+  }
+
+  #tab-select {
+
+    grid-area: b;
+  }
+
+  #logs {
+    grid-area: c;
+  }
+
+  li {
+    margin-bottom: var(--grid-4s);
+    background: var(--white);
+    padding: var(--grid-2s);
+  }
+</style>

@@ -1,0 +1,22 @@
+@namespace svg "http://www.w3.org/2000/svg";
+
+:not(svg|*) {
+  all: unset;
+  display: revert;
+  box-sizing: border-box;
+}
+
+:root {
+  --eggshell: #f1f5f9;
+  --white: #ffffff;
+
+  --grid-base: 8px;
+
+  --grid-4s: calc(var(--grid-base) / 4);
+  --grid-2s: calc(var(--grid-base) / 2);
+  --grid-1x: --grid-base;
+  --grid-2x: calc(var(--grid-base) * 2);
+  --grid-3x: calc(var(--grid-base) * 3);
+  --grid-4x: calc(var(--grid-base) * 4);
+}
+
