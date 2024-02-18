@@ -1,4 +1,4 @@
-# Turbo Prism
+# Prism
 
 ## Setup
 
